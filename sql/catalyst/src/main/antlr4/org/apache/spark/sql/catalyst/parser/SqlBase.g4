@@ -61,8 +61,13 @@ statement
         (AS? query)?                                                   #createTable
     | CREATE TABLE (IF NOT EXISTS)? target=tableIdentifier
         LIKE source=tableIdentifier                                    #createTableLike
+    | CREATE INDEX indexTable=tableIdentifier
+        ON TABLE baseTable=tableIdentifier ('(' columns=colTypeList ')')?
+        AS indexBuild                                                  #createIndex
     | ANALYZE TABLE tableIdentifier partitionSpec? COMPUTE STATISTICS
         (identifier | FOR COLUMNS identifierSeq?)?                     #analyze
+    | ALTER INDEX indexTable=tableIdentifier ON dataTable=tableIdentifier
+        REBUILD                                                        #alterIndex
     | ALTER (TABLE | VIEW) from=tableIdentifier
         RENAME TO to=tableIdentifier                                   #renameTable
     | ALTER (TABLE | VIEW) tableIdentifier
@@ -87,6 +92,8 @@ statement
     | ALTER TABLE tableIdentifier RECOVER PARTITIONS                   #recoverPartitions
     | DROP TABLE (IF EXISTS)? tableIdentifier PURGE?                   #dropTable
     | DROP VIEW (IF EXISTS)? tableIdentifier                           #dropTable
+    | DROP INDEX (IF EXISTS)? indexTable=tableIdentifier
+        ON dataTable=tableIdentifier                                   #dropIndex
     | CREATE (OR REPLACE)? TEMPORARY? VIEW (IF NOT EXISTS)? tableIdentifier
         identifierCommentList? (COMMENT STRING)?
         (PARTITIONED ON identifierList)?
@@ -147,9 +154,6 @@ unsupportedHiveNativeCommands
     | kw1=SHOW kw2=TRANSACTIONS
     | kw1=SHOW kw2=INDEXES
     | kw1=SHOW kw2=LOCKS
-    | kw1=CREATE kw2=INDEX
-    | kw1=DROP kw2=INDEX
-    | kw1=ALTER kw2=INDEX
     | kw1=LOCK kw2=TABLE
     | kw1=LOCK kw2=DATABASE
     | kw1=UNLOCK kw2=TABLE
@@ -441,6 +445,10 @@ rowFormat
       (MAP KEYS TERMINATED BY keysTerminatedBy=STRING)?
       (LINES TERMINATED BY linesSeparatedBy=STRING)?
       (NULL DEFINED AS nullDefinedAs=STRING)?                                       #rowFormatDelimited
+    ;
+
+indexBuild
+    : indexType=STRING (WITH DEFERRED REBUILD)
     ;
 
 tableIdentifier
@@ -879,6 +887,8 @@ LOCAL: 'LOCAL';
 INPATH: 'INPATH';
 CURRENT_DATE: 'CURRENT_DATE';
 CURRENT_TIMESTAMP: 'CURRENT_TIMESTAMP';
+DEFERRED: 'DEFERRED';
+REBUILD: 'REBUILD';
 
 STRING
     : '\'' ( ~('\''|'\\') | ('\\' .) )* '\''
