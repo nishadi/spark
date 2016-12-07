@@ -94,6 +94,14 @@ abstract class ExternalCatalog {
 
   def renameTable(db: String, oldName: String, newName: String): Unit
 
+
+  // --------------------------------------------------------------------------
+  // Indexes
+  // --------------------------------------------------------------------------
+
+  def createIndex(indexTable: String, baseTable: String,
+                  indexHandlerClass: String, columnNames: Array[String]): Unit
+
   /**
    * Alter a table whose database and name match the ones specified in `tableDefinition`, assuming
    * the table exists. Note that, even though we can specify database in `tableDefinition`, it's
