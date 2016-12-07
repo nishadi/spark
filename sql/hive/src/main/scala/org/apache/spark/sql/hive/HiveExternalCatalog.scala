@@ -233,6 +233,13 @@ private[spark] class HiveExternalCatalog(conf: SparkConf, hadoopConf: Configurat
     }
   }
 
+  override def createIndex(indexTable: String,
+                           baseTable: String,
+                           indexHandlerClass: String,
+                           columnNames: Array[String]): Unit = {
+    client.createIndex(indexTable, baseTable, indexHandlerClass, columnNames)
+  }
+
   private def createDataSourceTable(table: CatalogTable, ignoreIfExists: Boolean): Unit = {
     // data source table always have a provider, it's guaranteed by `DDLUtils.isDatasourceTable`.
     val provider = table.provider.get

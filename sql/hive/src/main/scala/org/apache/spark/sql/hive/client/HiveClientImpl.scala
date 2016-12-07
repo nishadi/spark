@@ -19,6 +19,11 @@ package org.apache.spark.sql.hive.client
 
 import java.io.{File, PrintStream}
 
+import org.apache.hadoop.hive.ql.index.HiveIndex
+import org.apache.hadoop.mapred.{SequenceFileOutputFormat, SequenceFileInputFormat}
+import java.util.{ArrayList => JArrayList, List => JList, Map => JMap, Set => JSet}
+
+
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ArrayBuffer
 import scala.language.reflectiveCalls
@@ -26,7 +31,7 @@ import scala.language.reflectiveCalls
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.apache.hadoop.hive.conf.HiveConf
-import org.apache.hadoop.hive.metastore.{TableType => HiveTableType}
+import org.apache.hadoop.hive.metastore.{TableType => HiveTableType, MetaStoreUtils}
 import org.apache.hadoop.hive.metastore.api.{Database => HiveDatabase, FieldSchema}
 import org.apache.hadoop.hive.metastore.api.{SerDeInfo, StorageDescriptor}
 import org.apache.hadoop.hive.ql.Driver
@@ -423,6 +428,41 @@ private[hive] class HiveClientImpl(
 
   override def createTable(table: CatalogTable, ignoreIfExists: Boolean): Unit = withHiveState {
     client.createTable(toHiveTable(table), ignoreIfExists)
+  }
+
+
+  override def createIndex(indexTable: String,
+                           indexHandlerClass: String,
+                           baseTable: String,
+                           columnNames: Array[String]): Unit = withHiveState {
+    val indexHandlerClass: String = HiveIndex.IndexType.BITMAP_TABLE.getHandlerClsName
+    val indexName: String = "index_on_table_for_bitmapindex"
+
+
+    val indexedCols: JList[String] = new JArrayList[String]
+    indexedCols.add("col1")
+    val qIndexTableName: String = MetaStoreUtils.DEFAULT_DATABASE_NAME + "." + indexTable
+    val deferredRebuild: Boolean = true
+    val inputFormat: String = classOf[SequenceFileInputFormat[_, _]].getName
+    val outputFormat: String = classOf[SequenceFileOutputFormat[_, _]].getName
+    val serde: String = null
+    val storageHandler: String = null
+    val location: String = null
+    val collItemDelim: String = null
+    val fieldDelim: String = null
+    val fieldEscape: String = null
+    val lineDelim: String = null
+    val mapKeyDelim: String = null
+    val indexComment: String = null
+    val indexProps: JMap[String, String] = null
+    val tableProps: JMap[String, String] = null
+    val serdeProps: JMap[String, String] = null
+
+    client.createIndex(baseTable, indexName, indexHandlerClass, indexedCols, qIndexTableName,
+      deferredRebuild, inputFormat, outputFormat, serde, storageHandler, location, indexProps,
+      tableProps, serdeProps, collItemDelim, fieldDelim, fieldEscape, lineDelim, mapKeyDelim,
+      indexComment)
+
   }
 
   override def dropTable(

@@ -1120,6 +1120,18 @@ class SparkSqlAstBuilder(conf: SQLConf) extends AstBuilder {
     CreateTableLikeCommand(targetTable, sourceTable, ctx.EXISTS != null)
   }
 
+  override def visitCreateIndex(ctx: CreateIndexContext): LogicalPlan = withOrigin(ctx) {
+    val indexTable = ctx.indexTable.getText()
+    val baseTable = ctx.baseTable.getText()
+    val indexHandlerClass = ctx.indexType.getText()
+    val columnNames =
+      Option(ctx.columns)
+        .map(visitIdentifierList(_).toArray)
+        .getOrElse(Array.empty[String])
+    CreateIndexCommand(indexTable, baseTable, indexHandlerClass,
+      columnNames)
+  }
+
   /**
    * Create a [[CatalogStorageFormat]] for creating tables.
    *

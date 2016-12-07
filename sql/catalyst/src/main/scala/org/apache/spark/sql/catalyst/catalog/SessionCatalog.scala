@@ -248,6 +248,14 @@ class SessionCatalog(
     externalCatalog.createTable(newTableDefinition, ignoreIfExists)
   }
 
+  def createIndex(indexTable: String,
+                  baseTable: String,
+                  indexHandlerClass: String,
+                  columnNames: Array[String]): Unit = {
+
+    externalCatalog.createIndex(indexTable, baseTable, indexHandlerClass, columnNames)
+  }
+
   /**
    * Alter the metadata of an existing metastore table identified by `tableDefinition`.
    *

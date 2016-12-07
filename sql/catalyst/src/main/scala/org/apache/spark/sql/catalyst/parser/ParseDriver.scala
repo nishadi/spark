@@ -79,7 +79,7 @@ abstract class AbstractSqlParser extends ParserInterface with Logging {
       try {
         // first, try parsing with potentially faster SLL mode
         parser.getInterpreter.setPredictionMode(PredictionMode.SLL)
-        toResult(parser)
+        etoResult(parser)
       }
       catch {
         case e: ParseCancellationException =>
