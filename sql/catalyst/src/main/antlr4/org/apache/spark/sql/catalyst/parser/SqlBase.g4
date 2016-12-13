@@ -61,6 +61,13 @@ statement
         (AS? query)?                                                   #createTable
     | CREATE TABLE (IF NOT EXISTS)? target=tableIdentifier
         LIKE source=tableIdentifier                                    #createTableLike
+    | CREATE INDEX indexTable=tableIdentifier
+            ON TABLE baseTable=tableIdentifier ('(' columns=identifierList ')')?
+            AS indexType=STRING (WITH DEFERRED REBUILD)                    #createIndex
+    | ALTER INDEX indexTable=tableIdentifier ON dataTable=tableIdentifier
+            REBUILD                                                        #alterIndex
+    | DROP INDEX (IF EXISTS)? indexTable=tableIdentifier
+            ON dataTable=tableIdentifier                                   #dropIndex
     | ANALYZE TABLE tableIdentifier partitionSpec? COMPUTE STATISTICS
         (identifier | FOR COLUMNS identifierSeq?)?                     #analyze
     | ALTER (TABLE | VIEW) from=tableIdentifier
@@ -147,9 +154,6 @@ unsupportedHiveNativeCommands
     | kw1=SHOW kw2=TRANSACTIONS
     | kw1=SHOW kw2=INDEXES
     | kw1=SHOW kw2=LOCKS
-    | kw1=CREATE kw2=INDEX
-    | kw1=DROP kw2=INDEX
-    | kw1=ALTER kw2=INDEX
     | kw1=LOCK kw2=TABLE
     | kw1=LOCK kw2=DATABASE
     | kw1=UNLOCK kw2=TABLE
@@ -886,6 +890,8 @@ LOCAL: 'LOCAL';
 INPATH: 'INPATH';
 CURRENT_DATE: 'CURRENT_DATE';
 CURRENT_TIMESTAMP: 'CURRENT_TIMESTAMP';
+DEFERRED: 'DEFERRED';
+REBUILD: 'REBUILD';
 
 STRING
     : '\'' ( ~('\''|'\\') | ('\\' .) )* '\''
