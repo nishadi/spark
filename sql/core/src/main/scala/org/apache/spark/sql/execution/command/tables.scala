@@ -91,6 +91,20 @@ case class CreateTableLikeCommand(
   }
 }
 
+case class CreateIndexCommand(
+                               indexTable: String,
+                               baseTable: String,
+                               indexHandlerClass: String,
+                               columnNames: Array[String]) extends RunnableCommand {
+
+  override def run(sparkSession: SparkSession): Seq[Row] = {
+    val catalog = sparkSession.sessionState.catalog
+    catalog.createIndex(indexTable, baseTable, indexHandlerClass, columnNames)
+
+    Seq.empty[Row]
+  }
+}
+
 
 // TODO: move the rest of the table commands from ddl.scala to this file
 

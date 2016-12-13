@@ -505,4 +505,10 @@ class InMemoryCatalog(hadoopConfig: Configuration = new Configuration) extends E
     StringUtils.filterPattern(catalog(db).functions.keysIterator.toSeq, pattern)
   }
 
+  override def createIndex(indexTable: String,
+                           baseTable: String,
+                           indexHandlerClass: String,
+                           columnNames: Array[String]): Unit = {
+  }
+
 }

@@ -181,6 +181,13 @@ private[spark] class HiveExternalCatalog(client: HiveClient, hadoopConf: Configu
     }
   }
 
+  override def createIndex(indexTable: String,
+                           baseTable: String,
+                           indexHandlerClass: String,
+                           columnNames: Array[String]): Unit = {
+    client.createIndex(indexTable, baseTable, indexHandlerClass, columnNames)
+  }
+
   override def dropTable(
       db: String,
       table: String,

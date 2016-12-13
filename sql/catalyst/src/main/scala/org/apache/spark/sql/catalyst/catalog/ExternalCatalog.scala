@@ -184,4 +184,10 @@ abstract class ExternalCatalog {
 
   def listFunctions(db: String, pattern: String): Seq[String]
 
+  // --------------------------------------------------------------------------
+  // Indexes
+  // --------------------------------------------------------------------------
+  def createIndex(indexTable: String, baseTable: String,
+                              indexHandlerClass: String, columnNames: Array[String]): Unit
+
 }

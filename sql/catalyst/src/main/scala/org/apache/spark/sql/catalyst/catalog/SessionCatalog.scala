@@ -888,6 +888,14 @@ class SessionCatalog(
     }
   }
 
+  def createIndex(indexTable: String,
+                  baseTable: String,
+                  indexHandlerClass: String,
+                  columnNames: Array[String]): Unit = {
+
+    externalCatalog.createIndex(indexTable, baseTable, indexHandlerClass, columnNames)
+  }
+
 
   // -----------------
   // | Other methods |

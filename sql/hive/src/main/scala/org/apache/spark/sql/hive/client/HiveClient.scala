@@ -79,6 +79,9 @@ private[hive] trait HiveClient {
   /** Creates a table with the given metadata. */
   def createTable(table: CatalogTable, ignoreIfExists: Boolean): Unit
 
+  def createIndex(indexTable: String, baseTable: String,
+                  indexHandlerClass: String, columnNames: Array[String]): Unit
+
   /** Drop the specified table. */
   def dropTable(dbName: String, tableName: String, ignoreIfNotExists: Boolean, purge: Boolean): Unit
 
