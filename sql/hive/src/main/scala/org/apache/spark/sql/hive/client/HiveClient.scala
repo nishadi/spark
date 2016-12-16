@@ -82,6 +82,8 @@ private[hive] trait HiveClient {
   def createIndex(indexTable: String, baseTable: String,
                   indexHandlerClass: String, columnNames: Array[String]): Unit
 
+  def alterIndex(indexTable: String, baseTable: String): Unit
+
   /** Drop the specified table. */
   def dropTable(dbName: String, tableName: String, ignoreIfNotExists: Boolean, purge: Boolean): Unit
 

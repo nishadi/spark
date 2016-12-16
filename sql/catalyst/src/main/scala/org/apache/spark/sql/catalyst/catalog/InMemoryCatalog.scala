@@ -511,4 +511,8 @@ class InMemoryCatalog(hadoopConfig: Configuration = new Configuration) extends E
                            columnNames: Array[String]): Unit = {
   }
 
+  override def alterIndex(indexTable: String,
+                           baseTable: String): Unit = {
+  }
+
 }

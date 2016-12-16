@@ -1091,6 +1091,13 @@ class SparkSqlAstBuilder(conf: SQLConf) extends AstBuilder {
       columnNames)
   }
 
+  override def visitAlterIndex(ctx: AlterIndexContext): LogicalPlan = withOrigin(ctx) {
+    val indexTable = ctx.indexTable.getText()
+    val baseTable = ctx.dataTable.getText()
+
+    AlterIndexCommand(indexTable,baseTable)
+  }
+
   /**
    * Create a [[CatalogStorageFormat]] for creating tables.
    *

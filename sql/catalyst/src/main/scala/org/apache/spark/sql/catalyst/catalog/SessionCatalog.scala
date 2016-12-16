@@ -896,6 +896,12 @@ class SessionCatalog(
     externalCatalog.createIndex(indexTable, baseTable, indexHandlerClass, columnNames)
   }
 
+  def alterIndex(indexTable: String,
+                  baseTable: String): Unit = {
+
+    externalCatalog.alterIndex(indexTable, baseTable)
+  }
+
 
   // -----------------
   // | Other methods |

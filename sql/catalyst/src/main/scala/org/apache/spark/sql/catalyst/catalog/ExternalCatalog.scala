@@ -190,4 +190,6 @@ abstract class ExternalCatalog {
   def createIndex(indexTable: String, baseTable: String,
                               indexHandlerClass: String, columnNames: Array[String]): Unit
 
+  def alterIndex(indexTable: String, baseTable: String): Unit
+
 }

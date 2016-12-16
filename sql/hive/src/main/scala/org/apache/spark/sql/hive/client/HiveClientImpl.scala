@@ -20,8 +20,10 @@ package org.apache.spark.sql.hive.client
 import java.io.{File, PrintStream}
 
 import org.apache.hadoop.hive.ql.index.HiveIndex
-import org.apache.hadoop.mapred.{SequenceFileOutputFormat, SequenceFileInputFormat}
-import java.util.{ArrayList => JArrayList, List => JList, Map => JMap, Set => JSet}
+import org.apache.hadoop.hive.metastore.api.{Database => HiveDatabase, _}
+import org.apache.hadoop.hive.serde2.`lazy`.LazySimpleSerDe
+import org.apache.hadoop.mapred.{SequenceFileInputFormat, SequenceFileOutputFormat}
+import java.util.{ArrayList => JArrayList, List => JList, Map => JMap, Set => JSet, HashMap => JHashMap}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ArrayBuffer
@@ -30,11 +32,10 @@ import scala.language.reflectiveCalls
 import org.apache.hadoop.conf.Configuration
 import org.apache.hadoop.fs.Path
 import org.apache.hadoop.hive.conf.HiveConf
-import org.apache.hadoop.hive.metastore.{TableType => HiveTableType,MetaStoreUtils}
-import org.apache.hadoop.hive.metastore.api.{Database => HiveDatabase, FieldSchema}
-import org.apache.hadoop.hive.metastore.api.{SerDeInfo, StorageDescriptor}
+import org.apache.hadoop.hive.metastore.{TableType => HiveTableType, MetaStoreUtils}
+import org.apache.hadoop.hive.metastore.api.Table
 import org.apache.hadoop.hive.ql.Driver
-import org.apache.hadoop.hive.ql.metadata.{Hive, Partition => HivePartition, Table => HiveTable}
+import org.apache.hadoop.hive.ql.metadata.{Partition => HivePartition, Table => HiveTable, HiveUtils, HiveStorageHandler, Hive}
 import org.apache.hadoop.hive.ql.processors._
 import org.apache.hadoop.hive.ql.session.SessionState
 import org.apache.hadoop.security.UserGroupInformation
@@ -438,16 +439,17 @@ private[hive] class HiveClientImpl(
   }
 
   override def createIndex(indexTable: String,
-                           indexHandlerClass: String,
                            baseTable: String,
+                           indexHandlerClass: String,
                            columnNames: Array[String]): Unit = withHiveState {
     val indexHandlerClass: String = HiveIndex.IndexType.BITMAP_TABLE.getHandlerClsName
-    val indexName: String = "index_on_table_for_bitmapindex"
-
-
+    val indexName: String = indexTable
     val indexedCols: JList[String] = new JArrayList[String]
-    indexedCols.add("col1")
+    for ( i <- 0 to (columnNames.length - 1)) {
+      indexedCols.add(columnNames(i))
+    }
     val qIndexTableName: String = MetaStoreUtils.DEFAULT_DATABASE_NAME + "." + indexTable
+    val qBaseTableName: String = MetaStoreUtils.DEFAULT_DATABASE_NAME + "." + baseTable
     val deferredRebuild: Boolean = true
     val inputFormat: String = classOf[SequenceFileInputFormat[_, _]].getName
     val outputFormat: String = classOf[SequenceFileOutputFormat[_, _]].getName
@@ -464,12 +466,66 @@ private[hive] class HiveClientImpl(
     val tableProps: JMap[String, String] = null
     val serdeProps: JMap[String, String] = null
 
-    client.createIndex(baseTable, indexName, indexHandlerClass, indexedCols, qIndexTableName,
+    client.createIndex(qBaseTableName, indexName, indexHandlerClass, indexedCols, qIndexTableName,
       deferredRebuild, inputFormat, outputFormat, serde, storageHandler, location, indexProps,
       tableProps, serdeProps, collItemDelim, fieldDelim, fieldEscape, lineDelim, mapKeyDelim,
       indexComment)
-
   }
+
+  override def alterIndex(indexTable: String,
+                           baseTable: String): Unit = withHiveState {
+
+    val qBaseTableName: String = MetaStoreUtils.DEFAULT_DATABASE_NAME + "." + baseTable
+//    val indexHandlerClass: String = HiveIndex.IndexType.BITMAP_TABLE.getHandlerClsName
+//    val time: Int = (System.currentTimeMillis / 1000).toInt
+
+//    val indexTblCols: JList[FieldSchema] = new JArrayList[FieldSchema]
+//    val sortCols: JList[Order] = new JArrayList[Order]
+//    var k: Int = 0
+//    val metaBaseTbl: HiveTable = new
+    // HiveTable(client.getMSC.getTable(MetaStoreUtils.DEFAULT_DATABASE_NAME,
+//      baseTable))
+//
+//    {
+//      var i: Int = 0
+//      while (i < metaBaseTbl.getCols.size) {
+//        {
+//          val col: FieldSchema = metaBaseTbl.getCols.get(i)
+//          if (indexedCols.contains(col.getName)) {
+//            indexTblCols.add(col)
+//            sortCols.add(new Order(col.getName, 1))
+//            k += 1
+//          }
+//        }
+//        ({
+//          i += 1; i - 1
+//        })
+//      }
+//    }
+//    val location: String = null
+//    val inputFormat: String = classOf[SequenceFileInputFormat[_, _]].getName
+//    val outputFormat: String = classOf[SequenceFileOutputFormat[_, _]].getName
+//
+//    val serdeInfo: SerDeInfo = new SerDeInfo
+//    serdeInfo.setName(indexTable)
+//    serdeInfo.setSerializationLib(classOf[LazySimpleSerDe].getName)
+//
+//    val storageDescriptor: StorageDescriptor = new StorageDescriptor(indexTblCols,
+//      location, inputFormat, outputFormat, false,
+//      -1, serdeInfo, null, sortCols, null)
+//
+//
+//    val index: Index = new Index(indexTable, indexHandlerClass,
+//      MetaStoreUtils.DEFAULT_DATABASE_NAME,
+//      baseTable, time, time, indexTable, storageDescriptor,
+//      new JHashMap[String, String], true)
+
+    val index: Index = client.getMSC().getIndex(MetaStoreUtils.DEFAULT_DATABASE_NAME,
+      baseTable, indexTable)
+
+    client.alterIndex(qBaseTableName, indexTable, index)
+  }
+
 
   override def alterTable(tableName: String, table: CatalogTable): Unit = withHiveState {
     val hiveTable = toHiveTable(table)

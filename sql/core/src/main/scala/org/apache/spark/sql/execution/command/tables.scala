@@ -105,6 +105,17 @@ case class CreateIndexCommand(
   }
 }
 
+case class AlterIndexCommand(
+                              indexTable: String,
+                              baseTable: String) extends RunnableCommand {
+
+  override def run(sparkSession: SparkSession): Seq[Row] = {
+    val catalog = sparkSession.sessionState.catalog
+    catalog.alterIndex(indexTable, baseTable)
+
+    Seq.empty[Row]
+  }
+}
 
 // TODO: move the rest of the table commands from ddl.scala to this file
 
