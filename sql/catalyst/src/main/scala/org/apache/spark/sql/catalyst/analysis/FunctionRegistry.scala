@@ -267,6 +267,11 @@ object FunctionRegistry {
     expression[CollectList]("collect_list"),
     expression[CollectSet]("collect_set"),
 
+    // ewah bitmap functionality
+    expression[EwahBitmapAnd]("ewah_bitmap_and"),
+    expression[EwahBitmapOr]("ewah_bitmap_or"),
+    expression[EwahBitmapCount]("ewah_bitmap_count"),
+
     // string functions
     expression[Ascii]("ascii"),
     expression[Base64]("base64"),
