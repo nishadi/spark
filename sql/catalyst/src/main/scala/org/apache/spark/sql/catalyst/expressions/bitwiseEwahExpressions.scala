@@ -20,37 +20,51 @@ package org.apache.spark.sql.catalyst.expressions
 import com.googlecode.javaewah.EWAHCompressedBitmap
 
 import org.apache.spark.sql.catalyst.expressions.codegen._
-import org.apache.spark.sql.catalyst.util.GenericArrayData
 import org.apache.spark.sql.types._
+import org.apache.spark.unsafe.types.UTF8String
 
 /*
   * A function that return the bit wise AND operation between two Ewah Bitmaps
   */
 @ExpressionDescription(
   usage = "_FUNC_(bitmap1, bitmap2) - Returns the bitwise AND",
-  extended = "> SELECT _FUNC_(array(13,2,4,8589934592,4096,0), array(13,2,4,8589934592,4096,0);")
+  extended = "> SELECT _FUNC_('13,2,4,8589934592,4096,0', '13,2,4,8589934592,4096,0');")
 case class EwahBitmapAnd(left: Expression, right: Expression)
-  extends BinaryExpression with CodegenFallback{
+  extends BinaryExpression with CodegenFallback {
 
-   override def dataType: DataType = StringType
+  override def dataType: DataType = left.dataType
 
   override def nullSafeEval(bitmap_1: Any, bitmap_2: Any): Any = {
 
     val b1: EWAHCompressedBitmap = new EWAHCompressedBitmap
     val b2: EWAHCompressedBitmap = new EWAHCompressedBitmap
 
+    val bitmap1_String = bitmap_1.asInstanceOf[UTF8String].toString.split(",")
+    val bitmap2_String = bitmap_2.asInstanceOf[UTF8String].toString.split(",")
+
     var a = 0;
-    for ( a <- 0 until  bitmap_1.asInstanceOf[GenericArrayData].numElements()) {
-      b1.addWord(bitmap_1.asInstanceOf[GenericArrayData].getLong(a))
+    for (a <- 0 until bitmap1_String.length) {
+      if (a == bitmap1_String.length - 1) {
+        b1.setBufferWord(a, java.lang.Long.parseLong(bitmap1_String(a)), true)
+      }
+      else {
+        b1.setBufferWord(a, java.lang.Long.parseLong(bitmap1_String(a)), false)
+      }
     }
 
     var b = 0;
-    for ( b <- 0 until  bitmap_2.asInstanceOf[GenericArrayData].numElements()) {
-      b2.addWord(bitmap_2.asInstanceOf[GenericArrayData].getLong(b))
+    for (b <- 0 until bitmap2_String.length) {
+      if (b == bitmap2_String.length - 1) {
+        b2.setBufferWord(b, java.lang.Long.parseLong(bitmap2_String(b)), true)
+      }
+      else {
+        b2.setBufferWord(b, java.lang.Long.parseLong(bitmap2_String(b)), false)
+      }
     }
 
     val result: EWAHCompressedBitmap = b1.and(b2)
-    return result.toString
+    val utf8String: UTF8String = UTF8String.fromString(result.toRLWString)
+    return utf8String
   }
 }
 
@@ -60,29 +74,43 @@ case class EwahBitmapAnd(left: Expression, right: Expression)
   */
 @ExpressionDescription(
   usage = "_FUNC_(bitmap1, bitmap2) - Returns the bitwise OR",
-  extended = "> SELECT _FUNC_(array(13,2,4,8589934592,4096,0), array(13,2,4,8589934592,4096,0);")
+  extended = "> SELECT _FUNC_('13,2,4,8589934592,4096,0', '13,2,4,8589934592,4096,0');")
 case class EwahBitmapOr(left: Expression, right: Expression)
-  extends BinaryExpression with CodegenFallback{
+  extends BinaryExpression with CodegenFallback {
 
-  override def dataType: DataType = StringType
+  override def dataType: DataType = left.dataType
 
   override def nullSafeEval(bitmap_1: Any, bitmap_2: Any): Any = {
+
 
     val b1: EWAHCompressedBitmap = new EWAHCompressedBitmap
     val b2: EWAHCompressedBitmap = new EWAHCompressedBitmap
 
+    val bitmap1_String = bitmap_1.asInstanceOf[UTF8String].toString.split(",")
+    val bitmap2_String = bitmap_2.asInstanceOf[UTF8String].toString.split(",")
+
     var a = 0;
-    for ( a <- 0 until  bitmap_1.asInstanceOf[GenericArrayData].numElements()) {
-      b1.addWord(bitmap_1.asInstanceOf[GenericArrayData].getLong(a))
+    for (a <- 0 until bitmap1_String.length) {
+      if (a == bitmap1_String.length - 1) {
+        b1.setBufferWord(a, java.lang.Long.parseLong(bitmap1_String(a)), true)
+      }
+      else {
+        b1.setBufferWord(a, java.lang.Long.parseLong(bitmap1_String(a)), false)
+      }
     }
 
     var b = 0;
-    for ( b <- 0 until  bitmap_2.asInstanceOf[GenericArrayData].numElements()) {
-      b2.addWord(bitmap_2.asInstanceOf[GenericArrayData].getLong(b))
+    for (b <- 0 until bitmap2_String.length) {
+      if (b == bitmap2_String.length - 1) {
+        b2.setBufferWord(b, java.lang.Long.parseLong(bitmap2_String(b)), true)
+      }
+      else {
+        b2.setBufferWord(b, java.lang.Long.parseLong(bitmap2_String(b)), false)
+      }
     }
-
     val result: EWAHCompressedBitmap = b1.or(b2)
-    return result.toString
+    val utf8String: UTF8String = UTF8String.fromString(result.toRLWString)
+    return utf8String
   }
 }
 
@@ -91,21 +119,27 @@ case class EwahBitmapOr(left: Expression, right: Expression)
   */
 @ExpressionDescription(
   usage = "_FUNC_(bitmap1) - Returns the count of bits set to true",
-  extended = "> SELECT _FUNC_(array(13,2,4,8589934592,4096,0));")
+  extended = "> SELECT _FUNC_('13,2,4,8589934592,4096,0');")
 case class EwahBitmapCount(child: Expression)
-  extends UnaryExpression with CodegenFallback{
+  extends UnaryExpression with CodegenFallback {
 
   override def dataType: DataType = IntegerType
 
   override def nullSafeEval(bitmap_1: Any): Any = {
 
-    val bitmap: EWAHCompressedBitmap = new EWAHCompressedBitmap
+    val b1: EWAHCompressedBitmap = new EWAHCompressedBitmap
+
+    val bitmap1_String = bitmap_1.asInstanceOf[UTF8String].toString.split(",")
 
     var a = 0;
-    for ( a <- 0 until  bitmap_1.asInstanceOf[GenericArrayData].numElements()) {
-      bitmap.addWord(bitmap_1.asInstanceOf[GenericArrayData].getLong(a))
+    for (a <- 0 until bitmap1_String.length) {
+      if (a == bitmap1_String.length - 1) {
+        b1.setBufferWord(a, java.lang.Long.parseLong(bitmap1_String(a)), true)
+      }
+      else {
+        b1.setBufferWord(a, java.lang.Long.parseLong(bitmap1_String(a)), false)
+      }
     }
-
-    return bitmap.cardinality()
+    return b1.cardinality()
   }
 }
