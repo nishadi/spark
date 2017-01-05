@@ -442,18 +442,26 @@ private[hive] class HiveClientImpl(
                            baseTable: String,
                            indexHandlerClass: String,
                            columnNames: Array[String]): Unit = withHiveState {
-    val indexHandlerClass: String = HiveIndex.IndexType.BITMAP_TABLE.getHandlerClsName
+    // org.apache.hadoop.hive.ql.index.bitmap.BitmapIndexHandler
+    val indexHandlerClass: String = "org.apache.hadoop.hive.ql.index.bitmap.BitmapIndexHandler"
+    // truck_mileage_stage_index2
     val indexName: String = indexTable
     val indexedCols: JList[String] = new JArrayList[String]
     for ( i <- 0 to (columnNames.length - 1)) {
       indexedCols.add(columnNames(i))
     }
-    val qIndexTableName: String = MetaStoreUtils.DEFAULT_DATABASE_NAME + "." + indexTable
+    // default.default__truck_mileage_stage_truck_mileage_stage_index2__
+    val qIndexTableName: String = MetaStoreUtils.DEFAULT_DATABASE_NAME + "." +
+      MetaStoreUtils.DEFAULT_DATABASE_NAME + "_" + baseTable + "_" + indexTable + "__"
+    // default.truck_mileage_stage
     val qBaseTableName: String = MetaStoreUtils.DEFAULT_DATABASE_NAME + "." + baseTable
     val deferredRebuild: Boolean = true
-    val inputFormat: String = classOf[SequenceFileInputFormat[_, _]].getName
-    val outputFormat: String = classOf[SequenceFileOutputFormat[_, _]].getName
-    val serde: String = null
+    // org.apache.hadoop.mapred.TextInputFormat
+    val inputFormat: String = "org.apache.hadoop.mapred.TextInputFormat"
+    // org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat
+    val outputFormat: String = "org.apache.hadoop.hive.ql.io.IgnoreKeyTextOutputFormat"
+    // org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe
+    val serde: String = "org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe"
     val storageHandler: String = null
     val location: String = null
     val collItemDelim: String = null
@@ -520,8 +528,11 @@ private[hive] class HiveClientImpl(
 //      baseTable, time, time, indexTable, storageDescriptor,
 //      new JHashMap[String, String], true)
 
-    val index: Index = client.getMSC().getIndex(MetaStoreUtils.DEFAULT_DATABASE_NAME,
-      baseTable, indexTable)
+//    val index_old: Index = client.getMSC().getIndex(MetaStoreUtils.DEFAULT_DATABASE_NAME,
+ //     baseTable, indexTable)
+
+    val index: Index = client.getIndex(MetaStoreUtils.DEFAULT_DATABASE_NAME,
+      baseTable, indexTable);
 
     client.alterIndex(qBaseTableName, indexTable, index)
   }
