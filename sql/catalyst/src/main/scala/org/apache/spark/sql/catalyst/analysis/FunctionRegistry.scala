@@ -270,6 +270,8 @@ object FunctionRegistry {
     // ewah bitmap functionality
     expression[EwahBitmapAnd]("ewah_bitmap_and"),
     expression[EwahBitmapOr]("ewah_bitmap_or"),
+    expression[EwahBitmapAndTer]("ewah_bitmap_and_ternary"),
+    expression[EwahBitmapOrTer]("ewah_bitmap_or_ternary"),
     expression[EwahBitmapCount]("ewah_bitmap_count"),
 
     // string functions
